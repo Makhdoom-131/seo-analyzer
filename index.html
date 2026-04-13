@@ -12,24 +12,30 @@ body {
   font-family: 'Inter', sans-serif;
   background:#0f1117;
   color:#e8eaf0;
-  padding:30px;
-  max-width:900px;
-  margin:auto;
+  margin:0;
 }
 
-h1 {
-  font-size:28px;
+/* HERO */
+.hero {
+  text-align:center;
+  padding:60px 20px;
+}
+
+.hero h1 {
+  font-size:36px;
   margin-bottom:10px;
 }
 
-.subtitle {
+.hero p {
   color:#7a7f96;
-  margin-bottom:25px;
 }
 
+/* INPUT */
 .input-box {
+  max-width:800px;
+  margin:20px auto;
   background:#181c27;
-  padding:20px;
+  padding:15px;
   border-radius:12px;
   display:flex;
   gap:10px;
@@ -54,26 +60,52 @@ button {
   cursor:pointer;
 }
 
-.section {
+/* GRID */
+.grid {
+  max-width:900px;
+  margin:30px auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
+}
+
+.card {
   background:#181c27;
-  margin-top:20px;
-  padding:18px;
+  padding:20px;
   border-radius:12px;
+  text-align:center;
 }
 
 .score {
-  font-size:32px;
+  font-size:28px;
   font-weight:600;
 }
 
-.tip {
-  margin-top:6px;
-  color:#f7c948;
+/* SECTIONS */
+.section {
+  max-width:900px;
+  margin:20px auto;
+  background:#181c27;
+  padding:20px;
+  border-radius:12px;
 }
 
+.tip {
+  color:#f7c948;
+  margin-top:5px;
+}
+
+/* LOADER */
+.loader {
+  text-align:center;
+  margin-top:30px;
+  color:#7a7f96;
+}
+
+/* FOOTER */
 .footer {
   text-align:center;
-  margin-top:40px;
+  margin:40px 0;
   font-size:13px;
   color:#7a7f96;
 }
@@ -82,8 +114,10 @@ button {
 
 <body>
 
-<h1>🔍 SEO & Performance Analyzer</h1>
-<p class="subtitle">Real data from Google PageSpeed + live SEO audit</p>
+<div class="hero">
+  <h1>🚀 SEO & Performance Analyzer</h1>
+  <p>Analyze any website with real data from Google</p>
+</div>
 
 <div class="input-box">
   <input id="urlInput" placeholder="Enter your website URL">
@@ -92,9 +126,6 @@ button {
 </div>
 
 <div id="results"></div>
-
-<br>
-<button onclick="window.print()">📄 Download Report</button>
 
 <div class="footer">
   Built by <strong>Makhdoom Abdul Aleem</strong> • 
@@ -117,7 +148,7 @@ if(!url) return alert("Enter URL");
 if(!url.startsWith("http")) url = "https://" + url;
 if(compare && !compare.startsWith("http")) compare = "https://" + compare;
 
-document.getElementById("results").innerHTML = "Analyzing...";
+document.getElementById("results").innerHTML = `<div class="loader">Analyzing website...</div>`;
 
 try{
 
@@ -136,15 +167,20 @@ const title = doc.querySelector("title")?.innerText || "Not found";
 const desc = doc.querySelector('meta[name="description"]')?.content || "Not found";
 const h1 = doc.querySelectorAll("h1").length;
 
+// Suggestions
 let tips = [];
 if(title.length < 50) tips.push("Improve title length (50–60 chars)");
 if(desc.length < 150) tips.push("Improve meta description (150–160 chars)");
 if(h1 !== 1) tips.push("Use exactly one H1");
 
+// UI
 let output = `
-<div class="section">
-<div class="score">⚡ ${score}/100</div>
-<div>Performance Score</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="score">${score}</div>
+    <div>Performance</div>
+  </div>
 </div>
 
 <div class="section">
@@ -160,6 +196,7 @@ ${tips.length ? tips.map(t=>`<div class="tip">• ${t}</div>`).join("") : "All g
 </div>
 `;
 
+// Competitor
 if(compare){
   const compRes = await fetch(`${PAGESPEED}&url=${compare}&strategy=mobile`);
   const compData = await compRes.json();
@@ -167,9 +204,9 @@ if(compare){
 
   output += `
   <div class="section">
-  <h3>⚔️ Competitor</h3>
-  <p>${compare}</p>
-  <div class="score">${compScore}/100</div>
+    <h3>⚔️ Competitor Comparison</h3>
+    <p>${compare}</p>
+    <div class="score">${compScore}/100</div>
   </div>
   `;
 }
