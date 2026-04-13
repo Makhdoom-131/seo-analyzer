@@ -15,7 +15,6 @@ body {
   margin:0;
 }
 
-/* HERO */
 .hero {
   text-align:center;
   padding:60px 20px;
@@ -23,14 +22,12 @@ body {
 
 .hero h1 {
   font-size:36px;
-  margin-bottom:10px;
 }
 
 .hero p {
   color:#7a7f96;
 }
 
-/* INPUT */
 .input-box {
   max-width:800px;
   margin:20px auto;
@@ -60,12 +57,11 @@ button {
   cursor:pointer;
 }
 
-/* GRID */
 .grid {
   max-width:900px;
   margin:30px auto;
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
   gap:15px;
 }
 
@@ -77,11 +73,10 @@ button {
 }
 
 .score {
-  font-size:28px;
+  font-size:26px;
   font-weight:600;
 }
 
-/* SECTIONS */
 .section {
   max-width:900px;
   margin:20px auto;
@@ -92,60 +87,60 @@ button {
 
 .tip {
   color:#f7c948;
-  margin-top:5px;
 }
 
-/* LOADER */
-.loader {
-  text-align:center;
-  margin-top:30px;
-  color:#7a7f96;
-}
-
-/* FOOTER */
 .footer {
   text-align:center;
   margin:40px 0;
-  font-size:14px;
-  color:#ffffff;
+  color:#fff;
 }
 
 .footer a {
   color:#4f8ef7;
-  text-decoration:none;
-  font-weight:500;
 }
 
-.footer a:hover {
-  text-decoration:underline;
+.email-box {
+  max-width:500px;
+  margin:30px auto;
+  text-align:center;
 }
- 
+
+.email-box input {
+  width:70%;
+}
 </style>
 </head>
 
 <body>
 
 <div class="hero">
-  <h1>🚀 SEO & Performance Analyzer</h1>
-  <p>Analyze any website with real data from Google</p>
+  <h1>🚀 SEO Analyzer Tool</h1>
+  <p>Analyze performance, SEO & get actionable insights</p>
 </div>
 
 <div class="input-box">
-  <input id="urlInput" placeholder="Enter your website URL">
+  <input id="urlInput" placeholder="Enter website URL">
   <input id="compareInput" placeholder="Competitor (optional)">
   <button onclick="runAnalysis()">Analyze</button>
 </div>
 
 <div id="results"></div>
 
+<!-- EMAIL CAPTURE -->
+<div class="email-box">
+  <h3>📩 Get Full SEO Report</h3>
+  <input id="email" placeholder="Enter your email">
+  <button onclick="captureEmail()">Submit</button>
+</div>
+
 <div class="footer">
   Built by <strong>Makhdoom Abdul Aleem</strong> • 
-  <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank">Hire on Upwork</a>
+  <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank">Hire Me</a>
 </div>
 
 <script>
 
-const API_KEY = "AIzaSyBVPmzFj041q-Kh3nbyJIVAKAoCMMvsT0k";
+const API_KEY = "YOUR_NEW_API_KEY";
 const PAGESPEED = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?key=${API_KEY}`;
 const BACKEND_URL = "https://super-disk-7ef9.makhdoomabdulaleem.workers.dev/?url=";
 
@@ -159,14 +154,22 @@ if(!url) return alert("Enter URL");
 if(!url.startsWith("http")) url = "https://" + url;
 if(compare && !compare.startsWith("http")) compare = "https://" + compare;
 
-document.getElementById("results").innerHTML = `<div class="loader">Analyzing website...</div>`;
+document.getElementById("results").innerHTML = "Analyzing...";
 
 try{
 
 const res = await fetch(`${PAGESPEED}&url=${url}&strategy=mobile`);
 const data = await res.json();
 
-const score = Math.round(data.lighthouseResult.categories.performance.score * 100);
+const perf = Math.round(data.lighthouseResult.categories.performance.score * 100);
+const seoScore = Math.round(data.lighthouseResult.categories.seo.score * 100);
+const bp = Math.round(data.lighthouseResult.categories['best-practices'].score * 100);
+const access = Math.round(data.lighthouseResult.categories.accessibility.score * 100);
+
+// Core Web Vitals
+const lcp = data.lighthouseResult.audits['largest-contentful-paint'].displayValue;
+const cls = data.lighthouseResult.audits['cumulative-layout-shift'].displayValue;
+const tbt = data.lighthouseResult.audits['total-blocking-time'].displayValue;
 
 // Fetch HTML
 const htmlRes = await fetch(`${BACKEND_URL}${encodeURIComponent(url)}`);
@@ -177,28 +180,46 @@ const doc = new DOMParser().parseFromString(html, "text/html");
 const title = doc.querySelector("title")?.innerText || "Not found";
 const desc = doc.querySelector('meta[name="description"]')?.content || "Not found";
 const h1 = doc.querySelectorAll("h1").length;
+const imgs = doc.querySelectorAll("img");
+const missingAlt = [...imgs].filter(img => !img.alt).length;
+
+// Custom SEO Score
+let seoPoints = 0;
+if(title.length >= 50 && title.length <= 60) seoPoints += 25;
+if(desc.length >= 150 && desc.length <= 160) seoPoints += 25;
+if(h1 === 1) seoPoints += 25;
+if(desc !== "Not found") seoPoints += 25;
 
 // Suggestions
 let tips = [];
-if(title.length < 50) tips.push("Improve title length (50–60 chars)");
-if(desc.length < 150) tips.push("Improve meta description (150–160 chars)");
-if(h1 !== 1) tips.push("Use exactly one H1");
+if(title.length < 50) tips.push("Add primary keyword in title (50–60 chars)");
+if(desc.length < 150) tips.push("Write better meta description (150–160 chars)");
+if(h1 !== 1) tips.push("Use exactly one H1 tag");
+if(missingAlt > 0) tips.push("Add ALT text to all images");
 
-// UI
+// UI Output
 let output = `
-
 <div class="grid">
-  <div class="card">
-    <div class="score">${score}</div>
-    <div>Performance</div>
-  </div>
+  <div class="card"><div class="score">${perf}</div><div>Performance</div></div>
+  <div class="card"><div class="score">${seoScore}</div><div>SEO</div></div>
+  <div class="card"><div class="score">${bp}</div><div>Best Practices</div></div>
+  <div class="card"><div class="score">${access}</div><div>Accessibility</div></div>
+  <div class="card"><div class="score">${seoPoints}</div><div>Your SEO Score</div></div>
+</div>
+
+<div class="section">
+<h3>⚡ Core Web Vitals</h3>
+<p>LCP: ${lcp}</p>
+<p>CLS: ${cls}</p>
+<p>TBT: ${tbt}</p>
 </div>
 
 <div class="section">
 <h3>🏷 SEO Overview</h3>
-<p><b>Title:</b> ${title}</p>
-<p><b>Description:</b> ${desc}</p>
-<p><b>H1 Count:</b> ${h1}</p>
+<p>Title: ${title}</p>
+<p>Description: ${desc}</p>
+<p>H1 Count: ${h1}</p>
+<p>Images missing ALT: ${missingAlt}</p>
 </div>
 
 <div class="section">
@@ -207,27 +228,21 @@ ${tips.length ? tips.map(t=>`<div class="tip">• ${t}</div>`).join("") : "All g
 </div>
 `;
 
-// Competitor
-if(compare){
-  const compRes = await fetch(`${PAGESPEED}&url=${compare}&strategy=mobile`);
-  const compData = await compRes.json();
-  const compScore = Math.round(compData.lighthouseResult.categories.performance.score * 100);
-
-  output += `
-  <div class="section">
-    <h3>⚔️ Competitor Comparison</h3>
-    <p>${compare}</p>
-    <div class="score">${compScore}/100</div>
-  </div>
-  `;
-}
-
 document.getElementById("results").innerHTML = output;
 
 }catch(e){
   document.getElementById("results").innerHTML = "Error loading data";
 }
 
+}
+
+// EMAIL CAPTURE
+function captureEmail(){
+  const email = document.getElementById("email").value;
+  if(!email) return alert("Enter email");
+  
+  console.log("Captured email:", email);
+  alert("Thanks! We’ll send you the report soon.");
 }
 
 </script>
