@@ -156,11 +156,9 @@ button {
   Built by <strong>Makhdoom Abdul Aleem</strong> • 
   <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank">Hire Me</a>
 </div>
-
 <script>
 
 const API_KEY = "AIzaSyBVPmzFj041q-Kh3nbyJIVAKAoCMMvsT0k";
-const BACKEND_URL = "https://super-disk-7ef9.makhdoomabdulaleem.workers.dev/?url=";
 
 async function runAnalysis(){
 
@@ -179,54 +177,36 @@ const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=$
 const res = await fetch(apiUrl);
 const data = await res.json();
 
-if(!data.lighthouseResult){
-  throw new Error("API failed");
+// 🛑 SAFE ACCESS (IMPORTANT)
+const categories = data?.lighthouseResult?.categories;
+
+if(!categories){
+  console.log(data); // debug
+  throw new Error("Invalid API response");
 }
 
-// Scores
-const perf = Math.round(data.lighthouseResult.categories.performance.score * 100);
-const seoScore = Math.round(data.lighthouseResult.categories.seo.score * 100);
-const bp = Math.round(data.lighthouseResult.categories['best-practices'].score * 100);
-const access = Math.round(data.lighthouseResult.categories.accessibility.score * 100);
+// Scores (SAFE)
+const perf = Math.round((categories.performance?.score || 0) * 100);
+const seoScore = Math.round((categories.seo?.score || 0) * 100);
+const bp = Math.round((categories['best-practices']?.score || 0) * 100);
+const access = Math.round((categories.accessibility?.score || 0) * 100);
 
-// Core Web Vitals
-const audits = data.lighthouseResult.audits;
+// Core Web Vitals (SAFE)
+const audits = data?.lighthouseResult?.audits || {};
+
 const lcp = audits['largest-contentful-paint']?.displayValue || "N/A";
 const cls = audits['cumulative-layout-shift']?.displayValue || "N/A";
 const tbt = audits['total-blocking-time']?.displayValue || "N/A";
 
-// HTML Parsing
-let title="Not found", desc="Not found", h1=0, missingAlt=0, keywords=[];
+// ❌ REMOVE BACKEND FOR NOW (it’s causing 404)
+// We will re-add later safely
 
-try{
-const htmlRes = await fetch(`${BACKEND_URL}${encodeURIComponent(url)}`);
-const html = await htmlRes.text();
-
-const doc = new DOMParser().parseFromString(html, "text/html");
-
-title = doc.querySelector("title")?.innerText || "Not found";
-desc = doc.querySelector('meta[name="description"]')?.content || "Not found";
-h1 = doc.querySelectorAll("h1").length;
-
-const imgs = doc.querySelectorAll("img");
-missingAlt = [...imgs].filter(img=>!img.alt).length;
-
-const text = doc.body?.innerText?.toLowerCase() || "";
-const words = text.match(/\b[a-z]{4,}\b/g) || [];
-
-const freq = {};
-words.forEach(w=>freq[w]=(freq[w]||0)+1);
-
-keywords = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,8).map(k=>k[0]);
-
-}catch(e){}
-
-// SEO Score
-let seoPoints = 0;
-if(title.length>=50 && title.length<=60) seoPoints+=25;
-if(desc.length>=150 && desc.length<=160) seoPoints+=25;
-if(h1===1) seoPoints+=25;
-if(desc!=="Not found") seoPoints+=25;
+// Dummy SEO data for now
+let title = "Live fetch disabled (backend issue)";
+let desc = "Meta data requires backend (will fix next)";
+let h1 = "-";
+let missingAlt = "-";
+let keywords = ["seo","performance","audit"];
 
 // UI
 document.getElementById("results").innerHTML = `
@@ -235,52 +215,54 @@ document.getElementById("results").innerHTML = `
 <div class="card"><div class="score">${seoScore}</div><div>SEO</div></div>
 <div class="card"><div class="score">${bp}</div><div>Best Practices</div></div>
 <div class="card"><div class="score">${access}</div><div>Accessibility</div></div>
-<div class="card"><div class="score">${seoPoints}</div><div>Your SEO</div></div>
 </div>
 
 <div class="section">
-<h3>Core Web Vitals</h3>
+<h3>⚡ Core Web Vitals</h3>
 <p>LCP: ${lcp}</p>
 <p>CLS: ${cls}</p>
 <p>TBT: ${tbt}</p>
 </div>
 
 <div class="section">
-<h3>SEO Overview</h3>
-<p>Title: ${title}</p>
-<p>Description: ${desc}</p>
-<p>H1 Count: ${h1}</p>
-<p>Images missing ALT: ${missingAlt}</p>
+<h3>📊 SEO Overview</h3>
+<p>${title}</p>
+<p>${desc}</p>
 </div>
 
 <div class="section">
-<h3>Top Keywords</h3>
-${keywords.map(k=>`<span>${k}</span>`).join(", ")}
+<h3>🔑 Keywords</h3>
+${keywords.join(", ")}
 </div>
 `;
 
 setTimeout(()=>{
-document.getElementById("popup").style.display="block";
+const popup = document.getElementById("popup");
+if(popup) popup.style.display = "block";
 },2000);
 
 }catch(e){
 console.error(e);
-document.getElementById("results").innerHTML = "<div class='section'>Error loading data</div>";
+document.getElementById("results").innerHTML = `
+<div class="section">
+❌ API Error — check console (F12)
+</div>`;
 }
 
 }
 
+// PDF
 function downloadPDF(){
 html2pdf().from(document.getElementById("results")).save("seo-report.pdf");
 }
 
+// Email
 function captureEmail(){
-const email=document.getElementById("email").value;
+const email = document.getElementById("email").value;
 if(!email) return alert("Enter email");
 alert("Thanks! We'll contact you.");
 }
 
 </script>
-
 </body>
 </html>
