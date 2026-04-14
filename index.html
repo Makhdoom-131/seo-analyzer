@@ -16,15 +16,22 @@ body {
   margin:0;
 }
 
+/* HERO */
 .hero {
   text-align:center;
-  padding:50px 20px 10px;
+  padding:60px 20px 20px;
+}
+
+.hero h1 {
+  font-size:38px;
 }
 
 .hero p {
   color:#aaa;
+  margin-top:10px;
 }
 
+/* INPUT */
 .input-box {
   max-width:800px;
   margin:auto;
@@ -33,65 +40,105 @@ body {
   background:#181c27;
   padding:15px;
   border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.3);
 }
 
 input {
   flex:1;
-  padding:12px;
+  padding:14px;
   background:#1e2333;
   border:none;
   border-radius:8px;
   color:#fff;
+  font-size:14px;
 }
 
 button {
-  padding:12px 20px;
+  padding:14px 22px;
   border:none;
   border-radius:8px;
   background:linear-gradient(135deg,#4f8ef7,#7c5af7);
   color:#fff;
   cursor:pointer;
+  font-weight:600;
+  transition:0.2s;
 }
 
+button:hover {
+  transform:translateY(-2px);
+}
+
+/* RESULTS */
 #results {
-  max-width:900px;
-  margin:30px auto;
+  max-width:950px;
+  margin:40px auto;
 }
 
+/* GRID */
 .grid {
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
   gap:15px;
 }
 
 .card {
   background:#181c27;
-  padding:20px;
-  border-radius:12px;
+  padding:22px;
+  border-radius:14px;
   text-align:center;
+  transition:0.3s;
+}
+
+.card:hover {
+  transform:translateY(-5px);
 }
 
 .score {
-  font-size:26px;
+  font-size:28px;
+  font-weight:600;
 }
 
+/* SECTION */
 .section {
   background:#181c27;
   margin-top:20px;
   padding:20px;
-  border-radius:12px;
+  border-radius:14px;
+  animation:fadeIn 0.4s ease;
 }
 
-.tip { color:#f7c948; }
+@keyframes fadeIn {
+  from {opacity:0; transform:translateY(10px);}
+  to {opacity:1;}
+}
 
+.tip {
+  color:#f7c948;
+  margin-top:5px;
+}
+
+/* ISSUE CARD */
+.issue {
+  background:#111;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:12px;
+}
+
+/* EMAIL */
+.email-box {
+  text-align:center;
+  margin-top:30px;
+}
+
+/* FOOTER */
 .footer {
   text-align:center;
   margin:40px 0;
+  color:#aaa;
 }
 
-.footer a { color:#4f8ef7; }
-
-/* POPUP CENTER */
+/* POPUP */
 #popup {
   display:none;
   position:fixed;
@@ -103,12 +150,13 @@ button {
   border-radius:12px;
   width:300px;
   z-index:999;
+  box-shadow:0 0 40px rgba(0,0,0,0.6);
 }
 
 #popup-close {
   position:absolute;
   top:10px;
-  right:10px;
+  right:12px;
   cursor:pointer;
 }
 </style>
@@ -118,7 +166,7 @@ button {
 
 <div class="hero">
   <h1>🚀 SEO Analyzer</h1>
-  <p>Analyze performance, SEO & issues with real Google data</p>
+  <p>Analyze performance, SEO & fix issues easily</p>
 </div>
 
 <div class="input-box">
@@ -132,42 +180,66 @@ button {
   <button onclick="downloadPDF()">📄 Download Report</button>
 </div>
 
-<div style="text-align:center;margin-top:20px;">
-  <input id="email" placeholder="Enter email">
+<div class="email-box">
+  <input id="email" placeholder="Enter your email">
   <button onclick="captureEmail()">Get Report</button>
 </div>
 
 <div class="footer">
   Built by <strong>Makhdoom Abdul Aleem</strong> • 
-  <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank">Hire Me</a>
+  <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank" style="color:#4f8ef7;">Hire Me</a>
 </div>
 
 <!-- POPUP -->
 <div id="popup">
   <span id="popup-close" onclick="closePopup()">❌</span>
-  <p>🚀 Need help with your website?</p>
-  <ul style="font-size:13px;color:#ccc;">
-    <li>SEO Optimization</li>
-    <li>Web Design & Development</li>
-    <li>Speed Optimization</li>
-  </ul>
+
+  <h3>🚀 Need Help?</h3>
+
+  <p style="color:#ccc;font-size:14px;">
+    Don’t have time to fix all issues?
+  </p>
+
+  <p style="font-size:13px;color:#aaa;">
+    • SEO Optimization <br>
+    • Speed Optimization <br>
+    • WordPress Development
+  </p>
+
   <p style="font-size:13px;">
-    📩 Makhdoomabdulaleem@gmail.com<br>
+    📩 Makhdoomabdulaleem@gmail.com <br>
     💬 +92 347 3606783
   </p>
+
+  <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank">
+    <button style="width:100%;">Hire Me</button>
+  </a>
 </div>
 
 <script>
 
 const BACKEND_URL = "https://super-disk-7ef9.makhdoomabdulaleem.workers.dev/?url=";
 
+function cleanText(text){
+  return text ? text.replace(/\[.*?\]/g,"").replace(/\(.*?\)/g,"") : "";
+}
+
+function simpleFix(title){
+  if(title.includes("CSS")) return "Reduce CSS size using minification.";
+  if(title.includes("JavaScript")) return "Remove unused JS and compress files.";
+  if(title.includes("render")) return "Delay scripts that block page loading.";
+  if(title.includes("network")) return "Reduce heavy images/videos.";
+  if(title.includes("unused")) return "Remove unused code.";
+  return "Optimize this for better performance.";
+}
+
 async function runAnalysis(){
 
 let url = document.getElementById("urlInput").value;
 if(!url) return alert("Enter URL");
-if(!url.startsWith("http")) url = "https://" + url;
+if(!url.startsWith("http")) url="https://"+url;
 
-document.getElementById("results").innerHTML = "Analyzing...";
+document.getElementById("results").innerHTML = "<div class='section'>Analyzing...</div>";
 
 const res = await fetch(`${BACKEND_URL}${encodeURIComponent(url)}`);
 const data = await res.json();
@@ -177,13 +249,11 @@ const d = data.desktop.lighthouseResult;
 
 const audits = m.audits;
 
-// LCP ELEMENT 🔥
+// LCP ELEMENT
 const lcpEl = audits['largest-contentful-paint-element']?.details?.items?.[0]?.node?.snippet || "Not found";
 
-// INSIGHTS
-const issues = Object.values(audits)
-  .filter(a => a.score !== null && a.score < 0.9)
-  .slice(0,10);
+// ISSUES
+const issues = Object.values(audits).filter(a=>a.score!==null && a.score<0.9).slice(0,8);
 
 // SEO
 const doc = new DOMParser().parseFromString(data.html,"text/html");
@@ -200,27 +270,30 @@ document.getElementById("results").innerHTML = `
 
 <div class="section">
 <h3>⚡ LCP Element</h3>
-${lcpEl}
+<div class="issue">${lcpEl}</div>
 </div>
 
 <div class="section">
 <h3>⚠️ Issues & Fixes</h3>
-${issues.map(i=>`<div class="tip">• ${i.title} → Fix: ${i.description || "Optimize this"}</div>`).join("")}
+${issues.map(i=>`
+<div class="issue">
+<b>${i.title}</b><br>
+<span style="color:#ccc;">${cleanText(i.description)}</span><br>
+<span class="tip">👉 ${simpleFix(i.title)}</span>
+</div>
+`).join("")}
 </div>
 
 <div class="section">
 <h3>🏷 SEO</h3>
-<p>Title: ${title}</p>
-<p>Description: ${desc}</p>
+<p><b>Title:</b> ${title}</p>
+<p><b>Description:</b> ${desc}</p>
 </div>
+
 `;
 
-setTimeout(()=>{document.getElementById("popup").style.display="block";},2000);
+setTimeout(()=>{document.getElementById("popup").style.display="block";},2500);
 
-}
-
-function closePopup(){
-document.getElementById("popup").style.display="none";
 }
 
 function downloadPDF(){
@@ -228,9 +301,13 @@ html2pdf().from(document.getElementById("results")).save("seo-report.pdf");
 }
 
 function captureEmail(){
-const email = document.getElementById("email").value;
+const email=document.getElementById("email").value;
 if(!email) return alert("Enter email");
-alert("Report will be sent (connect backend later)");
+alert("Thanks! We will contact you.");
+}
+
+function closePopup(){
+document.getElementById("popup").style.display="none";
 }
 
 </script>
