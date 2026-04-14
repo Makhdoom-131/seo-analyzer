@@ -158,140 +158,105 @@ button {
 </div>
 <script>
 
-const API_KEY = "AIzaSyBVPmzFj041q-Kh3nbyJIVAKAoCMMvsT0k";
 const BACKEND_URL = "https://super-disk-7ef9.makhdoomabdulaleem.workers.dev/?url=";
 
 async function runAnalysis(){
 
 let url = document.getElementById("urlInput").value;
-
 if(!url) return alert("Enter URL");
-
 if(!url.startsWith("http")) url = "https://" + url;
 
 document.getElementById("results").innerHTML = "<div class='section'>Analyzing...</div>";
 
 try{
 
-// 🔥 PAGE SPEED
-const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&key=${API_KEY}`;
-const res = await fetch(apiUrl);
+const res = await fetch(`${BACKEND_URL}${encodeURIComponent(url)}`);
 const data = await res.json();
 
-const categories = data?.lighthouseResult?.categories;
+if(!data.mobile?.lighthouseResult){
+  throw new Error("API failed");
+}
 
-if(!categories) throw new Error("API failed");
+// 🔥 MOBILE
+const m = data.mobile.lighthouseResult;
+const d = data.desktop.lighthouseResult;
 
 // Scores
-const perf = Math.round((categories.performance?.score || 0) * 100);
-const seoScore = Math.round((categories.seo?.score || 0) * 100);
-const bp = Math.round((categories['best-practices']?.score || 0) * 100);
-const access = Math.round((categories.accessibility?.score || 0) * 100);
+const mPerf = Math.round(m.categories.performance.score * 100);
+const dPerf = Math.round(d.categories.performance.score * 100);
 
-// Core Web Vitals
-const audits = data.lighthouseResult.audits;
-const lcp = audits['largest-contentful-paint']?.displayValue || "N/A";
-const cls = audits['cumulative-layout-shift']?.displayValue || "N/A";
-const tbt = audits['total-blocking-time']?.displayValue || "N/A";
+// Core vitals (REAL)
+const mLCP = m.audits['largest-contentful-paint']?.displayValue;
+const dLCP = d.audits['largest-contentful-paint']?.displayValue;
 
-// 🔥 FETCH WEBSITE HTML (WORKER)
-const htmlRes = await fetch(`${BACKEND_URL}${encodeURIComponent(url)}`);
-const html = await htmlRes.text();
+// 🔥 INSIGHTS (REAL audits)
+const audits = m.audits;
 
-const doc = new DOMParser().parseFromString(html, "text/html");
+function getAudit(id){
+  return audits[id]?.title + " → " + (audits[id]?.displayValue || "");
+}
 
-// SEO Data
+const insights = [
+  'render-blocking-resources',
+  'unused-javascript',
+  'largest-contentful-paint-element',
+  'total-blocking-time',
+  'unused-css-rules'
+].map(getAudit).filter(Boolean);
+
+// 🔥 HTML SEO
+const doc = new DOMParser().parseFromString(data.html, "text/html");
+
 const title = doc.querySelector("title")?.innerText || "Not found";
 const desc = doc.querySelector('meta[name="description"]')?.content || "Not found";
 const h1 = doc.querySelectorAll("h1").length;
 
-const imgs = doc.querySelectorAll("img");
-const missingAlt = [...imgs].filter(img => !img.alt).length;
-
-// Keywords
-const text = doc.body?.innerText?.toLowerCase() || "";
-const words = text.match(/\b[a-z]{4,}\b/g) || [];
-
-const freq = {};
-words.forEach(w => freq[w] = (freq[w] || 0) + 1);
-
-const keywords = Object.entries(freq)
-  .sort((a,b)=>b[1]-a[1])
-  .slice(0,8)
-  .map(k=>k[0]);
-
-// SEO Score
-let seoPoints = 0;
-if(title.length>=50 && title.length<=60) seoPoints+=25;
-if(desc.length>=150 && desc.length<=160) seoPoints+=25;
-if(h1===1) seoPoints+=25;
-if(desc!=="Not found") seoPoints+=25;
-
-// Suggestions
+// 🔥 SIMPLE GUIDANCE
 let tips = [];
-if(title.length < 50) tips.push("Improve title (50–60 chars)");
-if(desc.length < 150) tips.push("Improve meta description");
-if(h1 !== 1) tips.push("Use exactly one H1");
-if(missingAlt > 0) tips.push("Add ALT text to images");
+
+if(mPerf < 70) tips.push("⚡ Your site is slow — optimize images & scripts");
+if(mLCP && mLCP.includes("s")) tips.push("🚀 Improve LCP by optimizing hero image");
+if(h1 !== 1) tips.push("📑 Use exactly one H1 tag");
+if(desc.length < 140) tips.push("✍️ Write better meta description");
 
 // UI
 document.getElementById("results").innerHTML = `
+
 <div class="grid">
-<div class="card"><div class="score">${perf}</div><div>Performance</div></div>
-<div class="card"><div class="score">${seoScore}</div><div>SEO</div></div>
-<div class="card"><div class="score">${bp}</div><div>Best Practices</div></div>
-<div class="card"><div class="score">${access}</div><div>Accessibility</div></div>
-<div class="card"><div class="score">${seoPoints}</div><div>Your SEO</div></div>
+<div class="card"><div class="score">${mPerf}</div><div>Mobile Score</div></div>
+<div class="card"><div class="score">${dPerf}</div><div>Desktop Score</div></div>
 </div>
 
 <div class="section">
-<h3>⚡ Core Web Vitals</h3>
-<p>LCP: ${lcp}</p>
-<p>CLS: ${cls}</p>
-<p>TBT: ${tbt}</p>
+<h3>📊 Core Web Vitals</h3>
+<p><b>Mobile LCP:</b> ${mLCP}</p>
+<p><b>Desktop LCP:</b> ${dLCP}</p>
 </div>
 
 <div class="section">
-<h3>🏷 SEO Overview</h3>
-<p><b>Title:</b> ${title}</p>
-<p><b>Description:</b> ${desc}</p>
-<p><b>H1 Count:</b> ${h1}</p>
-<p><b>Missing ALT:</b> ${missingAlt}</p>
+<h3>⚠️ Key Issues (from Google)</h3>
+${insights.map(i=>`<div class="tip">• ${i}</div>`).join("")}
 </div>
 
 <div class="section">
-<h3>🔑 Top Keywords</h3>
-${keywords.join(", ")}
-</div>
-
-<div class="section">
-<h3>💡 Recommendations</h3>
+<h3>💡 Easy Fix Suggestions</h3>
 ${tips.map(t=>`<div class="tip">• ${t}</div>`).join("")}
 </div>
-`;
 
-// Popup
-setTimeout(()=>{
-document.getElementById("popup").style.display="block";
-},2000);
+<div class="section">
+<h3>🏷 SEO</h3>
+<p><b>Title:</b> ${title}</p>
+<p><b>Description:</b> ${desc}</p>
+<p><b>H1:</b> ${h1}</p>
+</div>
+
+`;
 
 }catch(e){
 console.error(e);
 document.getElementById("results").innerHTML = "<div class='section'>Error loading data</div>";
 }
 
-}
-
-// PDF
-function downloadPDF(){
-html2pdf().from(document.getElementById("results")).save("seo-report.pdf");
-}
-
-// Email
-function captureEmail(){
-const email = document.getElementById("email").value;
-if(!email) return alert("Enter email");
-alert("Thanks! We'll contact you.");
 }
 
 </script>
