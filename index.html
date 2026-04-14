@@ -213,8 +213,7 @@ document.getElementById("results").innerHTML = `
 
 <div class="section">
 <h3>⚠️ Key Issues</h3>
-${issues.map(i=>`<div class="tip">• ${i.title}</div>`).join("")}
-</div>
+${issues.map(i=>`<div class="tip">• ${i.title} ${i.displayValue || ""}</div>`).join("")}</div>
 
 <div class="section">
 <h3>🏷 SEO</h3>
