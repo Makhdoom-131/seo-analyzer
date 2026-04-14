@@ -7,107 +7,34 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <style>
-body {
-  font-family: 'Inter', sans-serif;
-  background:#0f1117;
-  color:#e8eaf0;
-  margin:0;
-}
+body {font-family:'Inter',sans-serif;background:#0f1117;color:#e8eaf0;margin:0;}
+.hero{text-align:center;padding:60px 20px;}
+.hero h1{font-size:36px;}
+.hero p{color:#7a7f96;}
 
-.hero {
-  text-align:center;
-  padding:60px 20px;
-}
+.input-box{max-width:800px;margin:20px auto;background:#181c27;padding:15px;border-radius:12px;display:flex;gap:10px;flex-wrap:wrap;}
+input{flex:1;padding:12px;border-radius:8px;border:1px solid #2a2f42;background:#1e2333;color:#fff;}
 
-.hero h1 {
-  font-size:36px;
-}
+button{padding:12px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#4f8ef7,#7c5af7);color:#fff;cursor:pointer;}
 
-.hero p {
-  color:#7a7f96;
-}
+.grid{max-width:900px;margin:30px auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;}
+.card{background:#181c27;padding:20px;border-radius:12px;text-align:center;}
+.score{font-size:26px;font-weight:600;}
 
-.input-box {
-  max-width:800px;
-  margin:20px auto;
-  background:#181c27;
-  padding:15px;
-  border-radius:12px;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
+.section{max-width:900px;margin:20px auto;background:#181c27;padding:20px;border-radius:12px;}
+.tip{color:#f7c948;}
 
-input {
-  flex:1;
-  padding:12px;
-  border-radius:8px;
-  border:1px solid #2a2f42;
-  background:#1e2333;
-  color:#fff;
-}
+.footer{text-align:center;margin:40px 0;color:#fff;}
+.footer a{color:#4f8ef7;}
 
-button {
-  padding:12px 20px;
-  border:none;
-  border-radius:8px;
-  background:linear-gradient(135deg,#4f8ef7,#7c5af7);
-  color:#fff;
-  cursor:pointer;
-}
+.email-box{max-width:500px;margin:30px auto;text-align:center;}
+.email-box input{width:70%;}
 
-.grid {
-  max-width:900px;
-  margin:30px auto;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:15px;
-}
-
-.card {
-  background:#181c27;
-  padding:20px;
-  border-radius:12px;
-  text-align:center;
-}
-
-.score {
-  font-size:26px;
-  font-weight:600;
-}
-
-.section {
-  max-width:900px;
-  margin:20px auto;
-  background:#181c27;
-  padding:20px;
-  border-radius:12px;
-}
-
-.tip {
-  color:#f7c948;
-}
-
-.footer {
-  text-align:center;
-  margin:40px 0;
-  color:#fff;
-}
-
-.footer a {
-  color:#4f8ef7;
-}
-
-.email-box {
-  max-width:500px;
-  margin:30px auto;
-  text-align:center;
-}
-
-.email-box input {
-  width:70%;
-}
+/* Popup */
+#popup{display:none;position:fixed;bottom:20px;right:20px;background:#181c27;padding:20px;border-radius:10px;}
 </style>
 </head>
 
@@ -126,11 +53,23 @@ button {
 
 <div id="results"></div>
 
-<!-- EMAIL CAPTURE -->
+<div style="text-align:center;">
+  <button onclick="downloadPDF()">📄 Download Report</button>
+</div>
+
+<!-- EMAIL -->
 <div class="email-box">
   <h3>📩 Get Full SEO Report</h3>
   <input id="email" placeholder="Enter your email">
   <button onclick="captureEmail()">Submit</button>
+</div>
+
+<!-- POPUP -->
+<div id="popup">
+  <p>Need help improving your SEO?</p>
+  <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank">
+    <button>Hire Me</button>
+  </a>
 </div>
 
 <div class="footer">
@@ -140,19 +79,16 @@ button {
 
 <script>
 
-const API_KEY = "YOUR_NEW_API_KEY";
+const API_KEY = "YOUR_NEW_API_KEY_HERE";
 const PAGESPEED = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?key=${API_KEY}`;
 const BACKEND_URL = "https://super-disk-7ef9.makhdoomabdulaleem.workers.dev/?url=";
 
 async function runAnalysis(){
 
 let url = document.getElementById("urlInput").value;
-let compare = document.getElementById("compareInput").value;
-
 if(!url) return alert("Enter URL");
 
 if(!url.startsWith("http")) url = "https://" + url;
-if(compare && !compare.startsWith("http")) compare = "https://" + compare;
 
 document.getElementById("results").innerHTML = "Analyzing...";
 
@@ -166,24 +102,30 @@ const seoScore = Math.round(data.lighthouseResult.categories.seo.score * 100);
 const bp = Math.round(data.lighthouseResult.categories['best-practices'].score * 100);
 const access = Math.round(data.lighthouseResult.categories.accessibility.score * 100);
 
-// Core Web Vitals
 const lcp = data.lighthouseResult.audits['largest-contentful-paint'].displayValue;
 const cls = data.lighthouseResult.audits['cumulative-layout-shift'].displayValue;
 const tbt = data.lighthouseResult.audits['total-blocking-time'].displayValue;
 
-// Fetch HTML
+// HTML fetch
 const htmlRes = await fetch(`${BACKEND_URL}${encodeURIComponent(url)}`);
 const html = await htmlRes.text();
-
 const doc = new DOMParser().parseFromString(html, "text/html");
 
 const title = doc.querySelector("title")?.innerText || "Not found";
 const desc = doc.querySelector('meta[name="description"]')?.content || "Not found";
 const h1 = doc.querySelectorAll("h1").length;
+
 const imgs = doc.querySelectorAll("img");
 const missingAlt = [...imgs].filter(img => !img.alt).length;
 
-// Custom SEO Score
+// Keywords
+const text = doc.body.innerText.toLowerCase();
+const words = text.match(/\b[a-z]{4,}\b/g) || [];
+const freq = {};
+words.forEach(w => freq[w] = (freq[w]||0)+1);
+const keywords = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+// SEO Score
 let seoPoints = 0;
 if(title.length >= 50 && title.length <= 60) seoPoints += 25;
 if(desc.length >= 150 && desc.length <= 160) seoPoints += 25;
@@ -192,19 +134,19 @@ if(desc !== "Not found") seoPoints += 25;
 
 // Suggestions
 let tips = [];
-if(title.length < 50) tips.push("Add primary keyword in title (50–60 chars)");
-if(desc.length < 150) tips.push("Write better meta description (150–160 chars)");
-if(h1 !== 1) tips.push("Use exactly one H1 tag");
-if(missingAlt > 0) tips.push("Add ALT text to all images");
+if(title.length < 50) tips.push("Improve title (50–60 chars)");
+if(desc.length < 150) tips.push("Improve meta description");
+if(h1 !== 1) tips.push("Use exactly one H1");
+if(missingAlt > 0) tips.push("Add ALT text to images");
 
-// UI Output
-let output = `
+// UI
+document.getElementById("results").innerHTML = `
 <div class="grid">
-  <div class="card"><div class="score">${perf}</div><div>Performance</div></div>
-  <div class="card"><div class="score">${seoScore}</div><div>SEO</div></div>
-  <div class="card"><div class="score">${bp}</div><div>Best Practices</div></div>
-  <div class="card"><div class="score">${access}</div><div>Accessibility</div></div>
-  <div class="card"><div class="score">${seoPoints}</div><div>Your SEO Score</div></div>
+<div class="card"><div class="score">${perf}</div><div>Performance</div></div>
+<div class="card"><div class="score">${seoScore}</div><div>SEO</div></div>
+<div class="card"><div class="score">${bp}</div><div>Best Practices</div></div>
+<div class="card"><div class="score">${access}</div><div>Accessibility</div></div>
+<div class="card"><div class="score">${seoPoints}</div><div>Your SEO Score</div></div>
 </div>
 
 <div class="section">
@@ -223,26 +165,37 @@ let output = `
 </div>
 
 <div class="section">
+<h3>🔑 Top Keywords</h3>
+${keywords.map(k=>`<span style="margin-right:10px;">${k[0]}</span>`).join("")}
+</div>
+
+<div class="section">
 <h3>💡 Recommendations</h3>
-${tips.length ? tips.map(t=>`<div class="tip">• ${t}</div>`).join("") : "All good 🎉"}
+${tips.map(t=>`<div class="tip">• ${t}</div>`).join("")}
 </div>
 `;
 
-document.getElementById("results").innerHTML = output;
+setTimeout(()=>{document.getElementById("popup").style.display="block";},2000);
 
 }catch(e){
-  document.getElementById("results").innerHTML = "Error loading data";
+document.getElementById("results").innerHTML="Error loading data";
 }
 
 }
 
-// EMAIL CAPTURE
+// PDF
+function downloadPDF(){
+  html2pdf().from(document.getElementById("results")).save("seo-report.pdf");
+}
+
+// Email (console + optional redirect)
 function captureEmail(){
   const email = document.getElementById("email").value;
   if(!email) return alert("Enter email");
-  
-  console.log("Captured email:", email);
-  alert("Thanks! We’ll send you the report soon.");
+
+  console.log("Email:", email);
+
+  alert("Thanks! We'll contact you soon.");
 }
 
 </script>
