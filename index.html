@@ -6,146 +6,39 @@
 <title>SEO Analyzer</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body {
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg,#0f1117,#1a1f2e);
-  color:#fff;
-  margin:0;
-}
-
-.hero { text-align:center; padding:50px 20px; }
-.hero p { color:#aaa; }
-
-.input-box {
-  max-width:900px;
-  margin:auto;
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  background:#181c27;
-  padding:15px;
-  border-radius:12px;
-}
-
-input {
-  flex:1;
-  padding:12px;
-  background:#1e2333;
-  border:none;
-  border-radius:8px;
-  color:#fff;
-}
-
-button {
-  padding:12px 20px;
-  border:none;
-  border-radius:8px;
-  background:linear-gradient(135deg,#4f8ef7,#7c5af7);
-  color:#fff;
-  cursor:pointer;
-}
-
-#results { max-width:950px; margin:30px auto; }
-
-.section {
-  background:#181c27;
-  margin-top:20px;
-  padding:20px;
-  border-radius:12px;
-}
-
-.issue {
-  background:#111;
-  padding:10px;
-  border-radius:8px;
-  margin-bottom:10px;
-}
-
+body { font-family:Inter; background:#0f1117; color:#fff; margin:0; }
+.hero { text-align:center; padding:40px; }
+.input-box { max-width:900px; margin:auto; display:flex; gap:10px; padding:10px; }
+input { flex:1; padding:10px; border-radius:6px; border:none; }
+button { padding:10px 15px; background:#6c5ce7; color:#fff; border:none; border-radius:6px; }
+#results { max-width:1000px; margin:20px auto; }
+.section { background:#1a1f2e; padding:15px; margin-top:15px; border-radius:10px; }
+.issue { background:#111; padding:10px; margin:8px 0; border-radius:8px; }
 .tip { color:#f7c948; }
-
-.footer { text-align:center; margin:40px; color:#aaa; }
-
-/* POPUP */
-#popup {
-  display:none;
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  background:#181c27;
-  padding:25px;
-  border-radius:12px;
-  width:300px;
-  z-index:999;
-}
-
-#popup-close {
-  position:absolute;
-  top:10px;
-  right:10px;
-  cursor:pointer;
-}
 </style>
 </head>
 
 <body>
 
 <div class="hero">
-  <h1>🚀 SEO Analyzer</h1>
-  <p>Analyze & fix your website performance easily</p>
+<h1>🚀 SEO Analyzer</h1>
+<p>Full SEO + Performance Audit</p>
 </div>
 
 <div class="input-box">
-  <input id="urlInput" placeholder="Enter your website URL">
-  <input id="compInput" placeholder="Competitor URL (optional)">
-  <button onclick="runAnalysis()">Analyze</button>
+<input id="urlInput" placeholder="Enter website">
+<input id="compInput" placeholder="Competitor (optional)">
+<button onclick="runAnalysis()">Analyze</button>
 </div>
 
 <div id="results"></div>
 
-<div style="text-align:center;">
-  <button onclick="downloadPDF()">📄 Download Report</button>
-</div>
-
-<div style="text-align:center;margin-top:15px;">
-  <input id="email" placeholder="Enter your email">
-  <button onclick="captureEmail()">Get Report</button>
-</div>
-
-<div class="footer">
-  Built by <strong>Makhdoom Abdul Aleem</strong> • 
-  <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank" style="color:#4f8ef7;">Hire Me</a>
-</div>
-
-<!-- POPUP -->
-<div id="popup">
-  <span id="popup-close" onclick="closePopup()">❌</span>
-  <h3>🚀 Need Help?</h3>
-  <p style="font-size:13px;color:#ccc;">
-    Don’t have time to fix all issues?
-  </p>
-  <p style="font-size:13px;">
-    📩 Makhdoomabdulaleem@gmail.com<br>
-    💬 +92 347 3606783
-  </p>
-  <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank">
-    <button style="width:100%;">Hire Me</button>
-  </a>
-</div>
-
 <script>
 
-const BACKEND_URL = "https://super-disk-7ef9.makhdoomabdulaleem.workers.dev/?url=";
-
-async function fetchData(url){
-  const res = await fetch(`${BACKEND_URL}${encodeURIComponent(url)}`);
-  if(!res.ok) throw new Error("Fetch failed");
-  return await res.json();
-}
+const API = "https://super-disk-7ef9.makhdoomabdulaleem.workers.dev/?url=";
 
 async function runAnalysis(){
 
@@ -159,45 +52,43 @@ document.getElementById("results").innerHTML="Analyzing...";
 
 try{
 
-const data = await fetchData(url);
-
-if(!data.mobile?.lighthouseResult) throw new Error("API failed");
+const res = await fetch(API + encodeURIComponent(url));
+const data = await res.json();
 
 const m = data.mobile.lighthouseResult;
-const d = data.desktop.lighthouseResult;
+const score = Math.round(m.categories.performance.score*100);
 
-const myScore = Math.round(m.categories.performance.score*100);
-const deskScore = Math.round(d.categories.performance.score*100);
-
-// COMPETITOR
-let compScore = 0;
-if(comp){
-  if(!comp.startsWith("http")) comp="https://"+comp;
-  const compData = await fetchData(comp);
-  compScore = Math.round(compData.mobile.lighthouseResult.categories.performance.score*100);
-}
+// IMAGE AUDIT
+const images = data.images;
+const missingAlt = images.filter(i => !i.alt);
 
 // ISSUES
 const audits = m.audits;
-const issues = Object.values(audits).filter(a=>a.score!==null && a.score<0.9).slice(0,6);
-
-// LCP
-const lcp = audits['largest-contentful-paint']?.displayValue || "N/A";
+const issues = Object.values(audits).filter(a=>a.score!==null && a.score<0.9).slice(0,5);
 
 // UI
 document.getElementById("results").innerHTML = `
 
 <div class="section">
 <h3>📊 Summary</h3>
-<p>Your performance score is <b>${myScore}</b>. Improving key issues can significantly boost speed.</p>
-<p>⚡ LCP: ${lcp}</p>
+<p>Performance Score: <b>${score}</b></p>
+<p>Total Images: ${images.length}</p>
+<p>Missing ALT Tags: ${missingAlt.length}</p>
 </div>
 
-<canvas id="chart" height="120"></canvas>
+<div class="section">
+<h3>🖼 Image Audit</h3>
+${images.slice(0,5).map(img=>`
+<div class="issue">
+<img src="${img.src}" width="50"><br>
+ALT: ${img.alt || "❌ Missing"}
+</div>
+`).join("")}
+</div>
 
 <div class="section">
-<h3>🔥 Fix These First</h3>
-${issues.slice(0,3).map(i=>`• ${i.title}`).join("<br>")}
+<h3>🔗 Crawled Links</h3>
+${data.links.map(l=>`<div class="issue">${l}</div>`).join("")}
 </div>
 
 <div class="section">
@@ -205,57 +96,18 @@ ${issues.slice(0,3).map(i=>`• ${i.title}`).join("<br>")}
 ${issues.map(i=>`
 <div class="issue">
 <b>${i.title}</b><br>
-<span class="tip">👉 Improve this for better speed</span><br>
-<button onclick="showPopup()">Fix this for me</button>
+<span class="tip">👉 Improve this</span>
 </div>
 `).join("")}
 </div>
 
 `;
 
-// CHART
-setTimeout(()=>{
-const ctx=document.getElementById("chart");
-if(ctx){
-new Chart(ctx,{
-type:'bar',
-data:{
-labels:["Mobile","Desktop","Competitor"],
-datasets:[{
-label:"Score",
-data:[myScore,deskScore,compScore]
-}]
-}
-});
-}
-},200);
-
-// POPUP
-setTimeout(()=>showPopup(),2500);
-
 }catch(e){
 console.error(e);
-document.getElementById("results").innerHTML="Error loading data. Try again.";
+document.getElementById("results").innerHTML="Error loading data";
 }
 
-}
-
-function showPopup(){
-document.getElementById("popup").style.display="block";
-}
-
-function closePopup(){
-document.getElementById("popup").style.display="none";
-}
-
-function downloadPDF(){
-html2pdf().from(document.getElementById("results")).save("seo-report.pdf");
-}
-
-function captureEmail(){
-const email=document.getElementById("email").value;
-if(!email) return alert("Enter email");
-alert("Thanks! We will contact you.");
 }
 
 </script>
