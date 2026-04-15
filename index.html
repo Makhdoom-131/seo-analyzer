@@ -7,6 +7,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {
@@ -16,13 +17,14 @@ body {
   margin:0;
 }
 
-.hero { text-align:center; padding:60px 20px 20px; }
+.hero { text-align:center; padding:50px 20px; }
 .hero p { color:#aaa; }
 
 .input-box {
-  max-width:800px;
+  max-width:900px;
   margin:auto;
   display:flex;
+  flex-wrap:wrap;
   gap:10px;
   background:#181c27;
   padding:15px;
@@ -31,7 +33,7 @@ body {
 
 input {
   flex:1;
-  padding:14px;
+  padding:12px;
   background:#1e2333;
   border:none;
   border-radius:8px;
@@ -39,7 +41,7 @@ input {
 }
 
 button {
-  padding:14px 22px;
+  padding:12px 20px;
   border:none;
   border-radius:8px;
   background:linear-gradient(135deg,#4f8ef7,#7c5af7);
@@ -47,20 +49,7 @@ button {
   cursor:pointer;
 }
 
-#results { max-width:950px; margin:40px auto; }
-
-.grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-  gap:15px;
-}
-
-.card {
-  background:#181c27;
-  padding:20px;
-  border-radius:12px;
-  text-align:center;
-}
+#results { max-width:950px; margin:30px auto; }
 
 .section {
   background:#181c27;
@@ -71,25 +60,14 @@ button {
 
 .issue {
   background:#111;
-  padding:12px;
-  border-radius:10px;
-  margin-bottom:12px;
+  padding:10px;
+  border-radius:8px;
+  margin-bottom:10px;
 }
-
-.badge {
-  font-size:12px;
-  padding:3px 8px;
-  border-radius:6px;
-  margin-right:5px;
-}
-
-.high { background:#ff4d4d; }
-.medium { background:#f7c948; color:#000; }
-.low { background:#4caf50; }
 
 .tip { color:#f7c948; }
 
-.footer { text-align:center; margin:40px 0; color:#aaa; }
+.footer { text-align:center; margin:40px; color:#aaa; }
 
 /* POPUP */
 #popup {
@@ -108,7 +86,7 @@ button {
 #popup-close {
   position:absolute;
   top:10px;
-  right:12px;
+  right:10px;
   cursor:pointer;
 }
 </style>
@@ -118,11 +96,12 @@ button {
 
 <div class="hero">
   <h1>🚀 SEO Analyzer</h1>
-  <p>Understand & fix your website issues easily</p>
+  <p>Analyze & fix your website performance easily</p>
 </div>
 
 <div class="input-box">
-  <input id="urlInput" placeholder="Enter website URL">
+  <input id="urlInput" placeholder="Enter your website URL">
+  <input id="compInput" placeholder="Competitor URL (optional)">
   <button onclick="runAnalysis()">Analyze</button>
 </div>
 
@@ -132,7 +111,7 @@ button {
   <button onclick="downloadPDF()">📄 Download Report</button>
 </div>
 
-<div style="text-align:center;margin-top:20px;">
+<div style="text-align:center;margin-top:15px;">
   <input id="email" placeholder="Enter your email">
   <button onclick="captureEmail()">Get Report</button>
 </div>
@@ -145,9 +124,9 @@ button {
 <!-- POPUP -->
 <div id="popup">
   <span id="popup-close" onclick="closePopup()">❌</span>
-  <h3>⚡ Want these fixes done?</h3>
+  <h3>🚀 Need Help?</h3>
   <p style="font-size:13px;color:#ccc;">
-    I can improve your speed, SEO & conversions.
+    Don’t have time to fix all issues?
   </p>
   <p style="font-size:13px;">
     📩 Makhdoomabdulaleem@gmail.com<br>
@@ -162,62 +141,59 @@ button {
 
 const BACKEND_URL = "https://super-disk-7ef9.makhdoomabdulaleem.workers.dev/?url=";
 
-function getPriority(title){
-  if(title.includes("LCP") || title.includes("render") || title.includes("blocking"))
-    return ["high","🔴 High Impact"];
-  if(title.includes("CSS") || title.includes("JavaScript"))
-    return ["medium","🟡 Medium Impact"];
-  return ["low","🟢 Low Impact"];
-}
-
-function simpleFix(title){
-  if(title.includes("LCP")) return "Optimize main image and reduce server response time.";
-  if(title.includes("render")) return "Delay scripts and CSS loading.";
-  if(title.includes("JavaScript")) return "Remove unused JS.";
-  if(title.includes("CSS")) return "Minify CSS files.";
-  return "Optimize this issue.";
+async function fetchData(url){
+  const res = await fetch(`${BACKEND_URL}${encodeURIComponent(url)}`);
+  if(!res.ok) throw new Error("Fetch failed");
+  return await res.json();
 }
 
 async function runAnalysis(){
 
-let url=document.getElementById("urlInput").value;
+let url = document.getElementById("urlInput").value;
+let comp = document.getElementById("compInput").value;
+
 if(!url) return alert("Enter URL");
 if(!url.startsWith("http")) url="https://"+url;
 
 document.getElementById("results").innerHTML="Analyzing...";
 
-const res=await fetch(`${BACKEND_URL}${encodeURIComponent(url)}`);
-const data=await res.json();
+try{
 
-const m=data.mobile.lighthouseResult;
-const d=data.desktop.lighthouseResult;
+const data = await fetchData(url);
 
-const audits=m.audits;
+if(!data.mobile?.lighthouseResult) throw new Error("API failed");
 
-// 🔥 PRIORITY ISSUES
-const issues=Object.values(audits).filter(a=>a.score!==null && a.score<0.9).slice(0,8);
+const m = data.mobile.lighthouseResult;
+const d = data.desktop.lighthouseResult;
 
-// 🔥 SUMMARY
-let summary="Your website has performance issues affecting speed.";
-if(m.categories.performance.score<0.5)
-summary="Your website is slow and may lose visitors.";
+const myScore = Math.round(m.categories.performance.score*100);
+const deskScore = Math.round(d.categories.performance.score*100);
 
-// 🔥 POTENTIAL
-const potential=Math.min(100,Math.round(m.categories.performance.score*100+20));
+// COMPETITOR
+let compScore = 0;
+if(comp){
+  if(!comp.startsWith("http")) comp="https://"+comp;
+  const compData = await fetchData(comp);
+  compScore = Math.round(compData.mobile.lighthouseResult.categories.performance.score*100);
+}
 
-// 🔥 UI
-document.getElementById("results").innerHTML=`
+// ISSUES
+const audits = m.audits;
+const issues = Object.values(audits).filter(a=>a.score!==null && a.score<0.9).slice(0,6);
+
+// LCP
+const lcp = audits['largest-contentful-paint']?.displayValue || "N/A";
+
+// UI
+document.getElementById("results").innerHTML = `
 
 <div class="section">
 <h3>📊 Summary</h3>
-<p>${summary}</p>
-<p>Potential Score: ${potential}</p>
+<p>Your performance score is <b>${myScore}</b>. Improving key issues can significantly boost speed.</p>
+<p>⚡ LCP: ${lcp}</p>
 </div>
 
-<div class="grid">
-<div class="card">${Math.round(m.categories.performance.score*100)}<br>Mobile</div>
-<div class="card">${Math.round(d.categories.performance.score*100)}<br>Desktop</div>
-</div>
+<canvas id="chart" height="120"></canvas>
 
 <div class="section">
 <h3>🔥 Fix These First</h3>
@@ -225,22 +201,42 @@ ${issues.slice(0,3).map(i=>`• ${i.title}`).join("<br>")}
 </div>
 
 <div class="section">
-<h3>⚠️ Issues & Fixes</h3>
-${issues.map(i=>{
-let p=getPriority(i.title);
-return `
+<h3>⚠️ Issues</h3>
+${issues.map(i=>`
 <div class="issue">
-<span class="badge ${p[0]}">${p[1]}</span>
 <b>${i.title}</b><br>
-<span class="tip">👉 ${simpleFix(i.title)}</span><br>
+<span class="tip">👉 Improve this for better speed</span><br>
 <button onclick="showPopup()">Fix this for me</button>
-</div>`;
-}).join("")}
+</div>
+`).join("")}
 </div>
 
 `;
 
-setTimeout(()=>showPopup(),3000);
+// CHART
+setTimeout(()=>{
+const ctx=document.getElementById("chart");
+if(ctx){
+new Chart(ctx,{
+type:'bar',
+data:{
+labels:["Mobile","Desktop","Competitor"],
+datasets:[{
+label:"Score",
+data:[myScore,deskScore,compScore]
+}]
+}
+});
+}
+},200);
+
+// POPUP
+setTimeout(()=>showPopup(),2500);
+
+}catch(e){
+console.error(e);
+document.getElementById("results").innerHTML="Error loading data. Try again.";
+}
 
 }
 
