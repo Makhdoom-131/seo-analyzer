@@ -43,8 +43,6 @@ const API = "https://super-disk-7ef9.makhdoomabdulaleem.workers.dev/?url=";
 async function runAnalysis(){
 
 let url = document.getElementById("urlInput").value;
-let comp = document.getElementById("compInput").value;
-
 if(!url) return alert("Enter URL");
 if(!url.startsWith("http")) url="https://"+url;
 
@@ -53,18 +51,23 @@ document.getElementById("results").innerHTML="Analyzing...";
 try{
 
 const res = await fetch(API + encodeURIComponent(url));
+if(!res.ok) throw new Error("Fetch failed");
+
 const data = await res.json();
+
+if(!data.mobile?.lighthouseResult){
+  throw new Error("API issue");
+}
 
 const m = data.mobile.lighthouseResult;
 const score = Math.round(m.categories.performance.score*100);
 
-// IMAGE AUDIT
-const images = data.images;
+// IMAGE AUDIT SAFE
+const images = data.images || [];
 const missingAlt = images.filter(i => !i.alt);
 
 // ISSUES
-const audits = m.audits;
-const issues = Object.values(audits).filter(a=>a.score!==null && a.score<0.9).slice(0,5);
+const issues = Object.values(m.audits).filter(a=>a.score!==null && a.score<0.9).slice(0,5);
 
 // UI
 document.getElementById("results").innerHTML = `
@@ -72,23 +75,23 @@ document.getElementById("results").innerHTML = `
 <div class="section">
 <h3>📊 Summary</h3>
 <p>Performance Score: <b>${score}</b></p>
-<p>Total Images: ${images.length}</p>
-<p>Missing ALT Tags: ${missingAlt.length}</p>
+<p>Images Found: ${images.length}</p>
+<p>Missing ALT: ${missingAlt.length}</p>
 </div>
 
 <div class="section">
 <h3>🖼 Image Audit</h3>
-${images.slice(0,5).map(img=>`
+${images.length ? images.slice(0,5).map(img=>`
 <div class="issue">
-<img src="${img.src}" width="50"><br>
-ALT: ${img.alt || "❌ Missing"}
+${img.src ? `<img src="${img.src}" width="50">` : ""}
+<br>ALT: ${img.alt || "❌ Missing"}
 </div>
-`).join("")}
+`).join("") : "⚠️ Could not fetch images"}
 </div>
 
 <div class="section">
-<h3>🔗 Crawled Links</h3>
-${data.links.map(l=>`<div class="issue">${l}</div>`).join("")}
+<h3>🔗 Links</h3>
+${data.links?.length ? data.links.map(l=>`<div class="issue">${l}</div>`).join("") : "⚠️ Could not fetch links"}
 </div>
 
 <div class="section">
@@ -101,16 +104,24 @@ ${issues.map(i=>`
 `).join("")}
 </div>
 
+<div class="section">
+<h3>📞 Contact</h3>
+📩 Makhdoomabdulaleem@gmail.com<br>
+💬 +92 347 3606783
+</div>
+
 `;
 
 }catch(e){
 console.error(e);
-document.getElementById("results").innerHTML="Error loading data";
+document.getElementById("results").innerHTML = `
+<div class="section">
+❌ Failed to analyze this site.<br><br>
+👉 Try another website OR the site may be blocking requests.
+</div>`;
 }
 
 }
-
 </script>
-
 </body>
 </html>
