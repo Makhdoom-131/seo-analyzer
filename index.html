@@ -3,160 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WP Security Scanner | Makhdoom Abdul Aleem</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<title>SEO Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0a0e12;
-  --surface: #111820;
-  --border: #1e2a35;
-  --primary: #0ff0b3; /* Cyber Green */
-  --danger: #ff4757;
-  --warning: #ffa502;
-  --text: #e1e8ed;
-  --muted: #6b7f8e;
+body { font-family: 'Inter', sans-serif; background: #0f1117; color: #fff; margin: 0; line-height: 1.6; padding-bottom: 100px; }
+.hero { text-align:center; padding:60px 20px 20px; }
+.hero h1 { margin: 0; font-size: 2.5em; }
+.hero p { color: #888; margin-top: 10px; }
+.input-box { max-width:900px; margin:20px auto 10px; display:flex; gap:10px; padding:0 20px; }
+input { flex:1; padding:14px 16px; border-radius:8px; border:1px solid #2a2f3e; background:#1a1f2e; color:#fff; font-size:16px; }
+input:focus { outline:none; border-color:#6c5ce7; }
+button { padding:14px 24px; background:#6c5ce7; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:16px; transition: background 0.3s; }
+button:hover { background: #5a4bd1; }
+
+/* History Dropdown */
+.history-box { max-width: 900px; margin: 0 auto 20px; padding: 0 20px; text-align: right; }
+.history-drop { background: #1a1f2e; color: #fff; border: 1px solid #2a2f3e; padding: 8px 12px; border-radius: 6px; font-size: 14px; cursor: pointer; }
+
+/* Action Buttons */
+.actions-box { max-width: 1000px; margin: 0 auto 10px; padding: 0 20px; display: flex; gap: 10px; justify-content: flex-end; display: none; }
+.action-btn { background: transparent; border: 1px solid #444; color: #aaa; padding: 8px 16px; font-size: 13px; border-radius: 6px; }
+.action-btn:hover { border-color: #fff; color: #fff; background: transparent; }
+
+#results { max-width:1000px; margin:0 auto 40px; padding:0 20px; }
+.section { background:#1a1f2e; padding:24px; margin-top:20px; border-radius:12px; border:1px solid #2a2f3e; }
+.section h3 { margin-top: 0; display: flex; align-items: center; gap: 10px; }
+
+/* NoIndex Critical Alert */
+.critical-alert { background: rgba(255, 23, 68, 0.1); border: 2px solid #ff1744; color: #ff1744; font-weight: bold; padding: 20px; border-radius: 10px; margin-bottom: 20px; font-size: 18px; text-align: center;}
+
+/* Scores Grid */
+.scores-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.score-card { background:#111; padding:20px; border-radius:10px; text-align:center; }
+.score-label { display:block; font-size:14px; color:#888; margin-bottom:8px; }
+.score-value { font-size:3em; font-weight:700; }
+
+/* CWV Grid */
+.cwv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px;}
+.cwv-card { background: #111; padding: 15px; border-radius: 8px; text-align: center; border-left: 4px solid #555;}
+.cwv-title { font-size: 12px; color: #888; text-transform: uppercase;}
+.cwv-val { font-size: 24px; font-weight: 700; margin: 5px 0;}
+.cwv-status { font-size: 12px; font-weight: 600;}
+
+/* Headings Tree */
+.tree { font-family: monospace; font-size: 14px; background: #111; padding: 15px; border-radius: 8px; line-height: 1.8; }
+.tree .h1 { color: #ff6b6b; font-weight: bold; }
+.tree .h2 { color: #f7c948; margin-left: 20px; }
+.tree .h3 { color: #74b9ff; margin-left: 40px; }
+.tree-err { color: #ff6b6b; margin-top: 10px; font-family: sans-serif; font-size: 14px;}
+
+.og-card { border:1px solid #333; border-radius:12px; overflow:hidden; max-width:500px; background:#111; font-family: sans-serif; }
+.og-card img { width:100%; height:200px; object-fit:cover; background:#222; }
+.og-text { padding:15px; }
+.og-text span { color:#666; font-size:12px; }
+.og-text h4 { margin:5px 0; color:#fff; font-size:16px;}
+.og-text p { margin:0; color:#aaa; font-size:14px; }
+
+.issue { background:#111; padding:12px 16px; margin:8px 0; border-radius:8px; border-left: 3px solid #ff6b6b; display:flex; align-items:center; gap:12px; }
+.issue img { border-radius:6px; object-fit:cover; }
+.tip { color:#f7c948; font-size:14px; }
+
+/* CTA Bar */
+#sticky-cta { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 17, 23, 0.95); backdrop-filter: blur(10px); border-top: 1px solid #2a2f3e; padding: 15px 20px; z-index: 1000; justify-content: center; align-items: center; gap: 20px; animation: slideUp 0.5s ease-out; }
+@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.cta-text { font-weight: 600; color: #fff; }
+.cta-text span { color: #888; font-weight: 400; font-size: 14px; margin-left: 8px; }
+.hire-btn { background: #14a800; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; transition: background 0.3s; }
+.hire-btn:hover { background: #118c00; }
+.contact-links a { color: #aaa; text-decoration: none; margin-left: 15px; font-size: 14px; transition: color 0.2s; }
+.contact-links a:hover { color: #fff; }
+
+footer { text-align: center; padding: 40px 20px; color: #555; font-size: 14px; border-top: 1px solid #1a1f2e; margin-top: 60px; }
+footer a { color: #6c5ce7; text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* PDF Export Styles */
+@media print {
+  body { background: #fff !important; color: #000 !important; padding-bottom: 0 !important; }
+  .hero, .input-box, .history-box, .actions-box, #sticky-cta, footer { display: none !important; }
+  .section { background: #fff !important; border: 1px solid #ccc !important; break-inside: avoid; }
+  .score-card, .cwv-card, .og-card, .issue, .tree { background: #f9f9f9 !important; color: #000 !important; }
+  .og-card img { box-shadow: none; }
 }
 
-* { box-sizing: border-box; }
-body { 
-  font-family: 'Inter', sans-serif; 
-  background: var(--bg); 
-  color: var(--text); 
-  margin: 0; 
-  line-height: 1.6;
-  padding-bottom: 0px;
-}
-.hero { text-align:center; padding:80px 20px 40px; border-bottom: 1px solid var(--border); }
-.hero h1 { margin: 0; font-size: 2.8em; color: var(--primary); font-family: 'JetBrains Mono', monospace; letter-spacing: -1px; }
-.hero p { color: var(--muted); margin-top: 10px; font-size: 18px; }
-
-.input-box { max-width:800px; margin:40px auto; display:flex; gap:0; padding:0 20px; }
-.input-wrapper {
-  flex: 1;
-  position: relative;
-}
-.input-wrapper input { 
-  width: 100%; padding:16px 20px; border-radius: 8px 0 0 8px; border: 2px solid var(--border); 
-  background: var(--surface); color: var(--text); font-size:16px; 
-  border-right: none;
-}
-.input-wrapper input:focus { outline:none; border-color: var(--primary); }
-button.scan-btn { 
-  padding:16px 32px; background: var(--primary); color: #000; border:none; 
-  border-radius: 0 8px 8px 0; cursor:pointer; font-weight:700; font-size:16px; 
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 0.3s;
-}
-button.scan-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(15, 240, 179, 0.3); }
-
-#results { max-width:900px; margin:40px auto; padding:0 20px; }
-
-.card { 
-  background: var(--surface); padding:30px; margin-bottom:25px; border-radius:12px; 
-  border: 1px solid var(--border); position: relative; overflow: hidden;
-}
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 4px; height: 100%;
-  background: var(--border);
-}
-.card.danger::before { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
-.card.warning::before { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
-.card.safe::before { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
-
-.card h3 { margin-top: 0; font-size: 20px; display: flex; align-items: center; gap: 10px; }
-
-.not-wp { border: 1px dashed var(--warning); color: var(--warning); padding: 20px; border-radius: 10px; text-align: center; background: rgba(255, 165, 2, 0.05);}
-
-.badge { display: inline-block; background: rgba(15, 240, 179, 0.1); color: var(--primary); padding: 6px 14px; border-radius: 6px; margin: 4px; font-size: 13px; font-weight: 600; border: 1px solid rgba(15, 240, 179, 0.2); font-family: 'JetBrains Mono', monospace;}
-
-.check-item { background: var(--bg); margin: 12px 0; padding: 18px; border-radius: 8px; display: flex; align-items: flex-start; gap: 15px; border: 1px solid var(--border);}
-.check-icon { font-size: 22px; margin-top: 2px; }
-.check-info h4 { margin: 0 0 5px; font-size: 16px; color: var(--text); }
-.check-info p { margin: 0; font-size: 13px; color: var(--muted); }
-
-.author-credentials {
-  margin-top: 50px;
-  text-align: center;
-  padding: 30px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 14px;
-}
-.author-credentials strong { color: var(--primary); }
-
-/* ✨ FOOTER STYLES */
-.site-footer {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--muted);
-  font-size: 14px;
-  border-top: 1px solid var(--border);
-  margin-top: 60px;
-  background: var(--bg);
-}
-.site-footer strong { color: var(--text); }
-.footer-creds {
-  margin-top: 15px;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-.footer-creds a {
-  color: var(--primary);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-.footer-creds a:hover { color: #fff; text-decoration: underline; }
-
-/* ✨ POPUP OVERLAY STYLES */
-.popup-overlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(8px);
-  z-index: 10000;
-  justify-content: center;
-  align-items: center;
-}
-.popup-box {
-  background: var(--surface);
-  border: 1px solid var(--primary);
-  border-radius: 16px;
-  max-width: 500px;
-  width: 90%;
-  padding: 40px;
-  text-align: center;
-  box-shadow: 0 0 40px rgba(15, 240, 179, 0.15);
-  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-}
-@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.popup-close {
-  position: absolute;
-  top: 15px; right: 20px;
-  background: none; border: none; color: var(--muted); font-size: 24px; cursor: pointer;
-}
-.popup-close:hover { color: #fff; }
-.popup-box h2 { color: var(--primary); margin-top: 0; font-family: 'JetBrains Mono', monospace; font-size: 24px;}
-.popup-box p { color: #bbb; margin-bottom: 30px; font-size: 15px; }
-.popup-box p em { color: var(--text); font-style: normal; font-weight: 600;}
-.btn-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
-.btn-upwork { background: #14a800; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; transition: 0.3s;}
-.btn-upwork:hover { background: #118c00; transform: translateY(-2px); }
-.btn-email { background: transparent; color: var(--text); text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; border: 1px solid var(--border); transition: 0.3s;}
-.btn-email:hover { border-color: var(--text); }
-
-@media (max-width: 600px) {
-  .input-box { flex-direction: column; gap: 10px; padding: 0 15px; }
-  .input-wrapper input { border-radius: 8px; border-right: 2px solid var(--border); }
-  button.scan-btn { border-radius: 8px; }
+@media (max-width: 768px) {
+  .input-box, .actions-box { flex-direction: column; }
+  .scores-grid { grid-template-columns: 1fr; }
+  .cwv-grid { grid-template-columns: 1fr; }
   .hero h1 { font-size: 1.8em; }
-  .btn-group { flex-direction: column; }
-  .footer-creds { flex-direction: column; gap: 10px; }
+  #sticky-cta { flex-direction: column; text-align: center; gap: 10px; }
+  .contact-links a { margin: 0 8px; }
 }
 </style>
 </head>
@@ -164,148 +100,221 @@ button.scan-btn:hover { background: #fff; box-shadow: 0 0 20px rgba(15, 240, 179
 <body>
 
 <div class="hero">
-  <h1>&gt; WP_SECURITY_SCAN</h1>
-  <p>Expose vulnerabilities, detect plugins, and audit tech stacks.</p>
+  <h1>🚀 SEO Analyzer</h1>
+  <p>Full SEO, Open Graph & Performance Audit</p>
 </div>
 
 <div class="input-box">
-  <div class="input-wrapper">
-    <input id="urlInput" type="text" placeholder="target-url.com">
-  </div>
-  <button class="scan-btn" onclick="runScan()">RUN SCAN</button>
+  <input id="urlInput" placeholder="Enter website URL (e.g., example.com)">
+  <button onclick="runAnalysis()">Analyze</button>
+</div>
+
+<div class="history-box">
+  <select id="historyDrop" class="history-drop" onchange="loadHistory(this.value)">
+    <option value="">⏳ Recent Scans</option>
+  </select>
+</div>
+
+<div class="actions-box" id="actionBtns">
+  <button class="action-btn" onclick="copyAsIssue()">📋 Copy as GitHub Issue</button>
+  <button class="action-btn" onclick="window.print()">📄 Export PDF</button>
 </div>
 
 <div id="results"></div>
 
-<!-- ✨ FOOTER -->
-<footer class="site-footer">
-  <p>Built by <strong>Makhdoom Abdul Aleem</strong></p>
-  <div class="footer-creds">
-    <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank">🌐 Upwork Profile</a>
-    <a href="mailto:makhdoomabdulaleem@gmail.com">📧 Email</a>
-    <a href="tel:+923473606083">💬 +92 347 360 6083</a>
-  </div>
+<footer>
+  <p>Built with ❤️ by <strong>Makhdoom Abdul Aleem</strong></p>
+  <p style="margin-top: 8px;">
+    <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank">Upwork Profile</a> &nbsp;|&nbsp; 
+    makhdoomabdulaleem@gmail.com &nbsp;|&nbsp; +92 347 360 6783
+  </p>
 </footer>
 
-<!-- ✨ HIRING POPUP (Hidden by default) -->
-<div class="popup-overlay" id="hirePopup">
-  <div class="popup-box">
-    <button class="popup-close" onclick="closePopup()">×</button>
-    <h2>🚨 Vulnerability Detected.</h2>
-    <p>
-      Your website has security holes that automated bots are actively exploiting right now.<br><br>
-      I'm <em>Makhdoom Abdul Aleem</em>, a Full-Stack WP Developer with a 100% Upwork Job Success Score. I don't just find the bugs—<em>I eliminate them.</em>
-    </p>
-    <div class="btn-group">
-      <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank" class="btn-upwork">Hire Me on Upwork</a>
-      <a href="mailto:makhdoomabdulaleem@gmail.com" class="btn-email">Email Me Directly</a>
-    </div>
+<div id="sticky-cta">
+  <div class="cta-text">Impressed by the tool? Hire me to build one for you.<span>(Frontend, Backend & Cloudflare Workers)</span></div>
+  <a href="https://www.upwork.com/freelancers/~015e6c72507369c4a1" target="_blank" class="hire-btn">Hire Me on Upwork</a>
+  <div class="contact-links">
+    <a href="mailto:makhdoomabdulaleem@gmail.com">📧 Email</a>
+    <a href="tel:+923473606783">📞 Call</a>
   </div>
 </div>
 
 <script>
-// ⚠️ CHANGE THIS TO YOUR WORKER URL
-const API = "https://wp-audit.makhdoomabdulaleem.workers.dev/?url=";
+const API = "https://super-disk-7ef9.makhdoomabdulaleem.workers.dev/?url=";
+let currentAuditData = null; // Store for copy function
 
-function closePopup() {
-  document.getElementById('hirePopup').style.display = 'none';
+function getScoreColor(score) { return score >= 90 ? "#00c853" : score >= 50 ? "#ffab00" : "#ff1744"; }
+function getCwvColor(type, val) {
+  if(type === 'lcp') return val <= 2.5 ? "#00c853" : val <= 4 ? "#ffab00" : "#ff1744";
+  if(type === 'cls') return val <= 0.1 ? "#00c853" : val <= 0.25 ? "#ffab00" : "#ff1744";
+  if(type === 'tbt') return val <= 200 ? "#00c853" : val <= 600 ? "#ffab00" : "#ff1744";
 }
 
-async function runScan() {
+async function runAnalysis() {
   let url = document.getElementById("urlInput").value.trim();
-  if (!url) return alert("Enter a target URL");
+  if (!url) return alert("Please enter a URL");
   if (!url.startsWith("http")) url = "https://" + url;
 
   const resultsDiv = document.getElementById("results");
-  resultsDiv.innerHTML = `<div class="card"><p style="color:var(--muted); font-family:'JetBrains Mono',monospace;">[+] Initiating connection...<br>[+] Crawling headers & endpoints...</p></div>`;
-  closePopup(); // Hide popup if it was open
+  document.getElementById("sticky-cta").style.display = "none";
+  document.getElementById("actionBtns").style.display = "none";
+  resultsDiv.innerHTML = `<div class="section" style="text-align:center;">⏳ Fetching data... (10-15 seconds)</div>`;
 
   try {
     const res = await fetch(API + encodeURIComponent(url));
-    if (!res.ok) throw new Error("Scan failed");
+    if (!res.ok) throw new Error("Worker fetch failed");
     const data = await res.json();
     if (data.error) throw new Error(data.error);
+    if (!data.mobile?.lighthouseResult) throw new Error("Invalid API response");
 
-    if (!data.isWordPress) {
-      resultsDiv.innerHTML = `<div class="not-wp">⚠️ Target is not WordPress, or actively blocking automated scans.</div>`;
-      return;
-    }
+    currentAuditData = data; // Save for copy function
+    saveToHistory(url);
 
-    const sec = data.security;
-    const failures = [sec.readmeExposed, sec.jsonUsersExposed, sec.xmlrpcExposed].filter(Boolean).length;
-    const secClass = failures === 0 ? 'safe' : failures <= 1 ? 'warning' : 'danger';
-    const secText = failures === 0 ? 'SECURE' : failures <= 1 ? 'AT RISK' : 'CRITICAL THREAT';
+    const m = data.mobile.lighthouseResult;
+    const d = data.desktop.lighthouseResult;
+    const mScore = Math.round(m.categories.performance.score * 100);
+    const dScore = Math.round(d.categories.performance.score * 100);
+    
+    const images = data.images || [];
+    const missingAlt = images.filter(i => !i.alt);
+    const links = data.links || [];
+    const issues = Object.values(m.audits).filter(a => a.score !== null && a.score < 0.9).slice(0, 5);
+    const seo = data.seo || {};
+    const displayUrl = new URL(url);
+
+    // ✅ Extract Core Web Vitals
+    const audits = m.audits;
+    const lcp = audits["largest-contentful-paint"];
+    const cls = audits["cumulative-layout-shift"];
+    const tbt = audits["total-blocking-time"];
+
+    // ✅ Build Heading Tree HTML
+    let treeHtml = "";
+    if (seo.headings) {
+      if(seo.headings.h1.length === 0) treeHtml += `<div class="tree-err">❌ Missing H1 Tag</div>`;
+      if(seo.headings.h1.length > 1) treeHtml += `<div class="tree-err">❌ Error: Found ${seo.headings.h1.length} H1 tags (Should only be 1)</div>`;
+      
+      seo.headings.h1.forEach(t => treeHtml += `<div class="h1">H1: ${t}</div>`);
+      seo.headings.h2.forEach(t => treeHtml += `<div class="h2">└── H2: ${t}</div>`);
+      seo.headings.h3.forEach(t => treeHtml += `<div class="h3">└── H3: ${t}</div>`);
+      if(!treeHtml) treeHtml = "No H1, H2, or H3 tags found.";
+    } else treeHtml = "Could not parse headings.";
 
     resultsDiv.innerHTML = `
-      <div class="card ${secClass}">
-        <h3>System Status: ${secText}</h3>
-        <p style="color:var(--muted); margin:0;">Found ${failures} exposure points.</p>
-      </div>
+      ${seo.isNoIndex ? `<div class="critical-alert">🚨 CRITICAL ERROR: This page has a NOINDEX tag. Google will completely ignore it!</div>` : ""}
 
-      <div class="card">
-        <h3>🛠 Fingerprinted Technology</h3>
-        <p style="color:var(--muted); margin-bottom:10px;">Page Builders:</p>
-        ${data.pageBuilder.length ? data.pageBuilder.map(p => `<span class="badge">${p}</span>`).join("") : '<span style="color:var(--muted)">Hidden / Custom</span>'}
-        <p style="color:var(--muted); margin: 20px 0 10px;">Active Plugins:</p>
-        ${data.plugins.length ? data.plugins.map(p => `<span class="badge">${p}</span>`).join("") : '<span style="color:var(--muted)">Hidden / Unknown</span>'}
-      </div>
-
-      <div class="card danger">
-        <h3>🔓 Endpoint Audit</h3>
+      <div class="section">
+        <h3>📊 Performance Scores</h3>
+        <div class="scores-grid">
+          <div class="score-card"><span class="score-label">📱 Mobile</span><span class="score-value" style="color:${getScoreColor(mScore)}">${mScore}</span></div>
+          <div class="score-card"><span class="score-label">🖥️ Desktop</span><span class="score-value" style="color:${getScoreColor(dScore)}">${dScore}</span></div>
+        </div>
         
-        <div class="check-item">
-          <span class="check-icon">${sec.readmeExposed ? '❌' : '✅'}</span>
-          <div class="check-info">
-            <h4>readme.html</h4>
-            <p>${sec.readmeExposed ? 'Exposed. Leaks exact WP version to attackers.' : 'Hidden or removed.'}</p>
+        <h3 style="margin-top: 25px;">⚡ Core Web Vitals (Mobile)</h3>
+        <div class="cwv-grid">
+          <div class="cwv-card" style="border-left-color: ${getCwvColor('lcp', parseFloat(lcp?.numericValue))}">
+            <div class="cwv-title">Largest Contentful Paint</div>
+            <div class="cwv-val" style="color: ${getCwvColor('lcp', parseFloat(lcp?.numericValue))}">${lcp?.displayValue || 'N/A'}</div>
+            <div class="cwv-status">${parseFloat(lcp?.numericValue) <= 2.5 ? '✅ Good' : '⚠️ Poor'}</div>
+          </div>
+          <div class="cwv-card" style="border-left-color: ${getCwvColor('cls', parseFloat(cls?.numericValue))}">
+            <div class="cwv-title">Cumulative Layout Shift</div>
+            <div class="cwv-val" style="color: ${getCwvColor('cls', parseFloat(cls?.numericValue))}">${cls?.displayValue || 'N/A'}</div>
+            <div class="cwv-status">${parseFloat(cls?.numericValue) <= 0.1 ? '✅ Good' : '⚠️ Poor'}</div>
+          </div>
+          <div class="cwv-card" style="border-left-color: ${getCwvColor('tbt', parseFloat(tbt?.numericValue))}">
+            <div class="cwv-title">Total Blocking Time</div>
+            <div class="cwv-val" style="color: ${getCwvColor('tbt', parseFloat(tbt?.numericValue))}">${tbt?.displayValue || 'N/A'}</div>
+            <div class="cwv-status">${parseFloat(tbt?.numericValue) <= 200 ? '✅ Good' : '⚠️ Poor'}</div>
           </div>
         </div>
-
-        <div class="check-item">
-          <span class="check-icon">${sec.loginExposed ? '⚠️' : '✅'}</span>
-          <div class="check-info">
-            <h4>wp-login.php</h4>
-            <p>${sec.loginExposed ? 'Accessible. Vulnerable to Brute-Force bot attacks.' : 'Properly secured or hidden.'}</p>
-          </div>
-        </div>
-
-        <div class="check-item">
-          <span class="check-icon">${sec.xmlrpcExposed ? '❌' : '✅'}</span>
-          <div class="check-info">
-            <h4>xmlrpc.php</h4>
-            <p>${sec.xmlrpcExposed ? 'Enabled. Massive DDoS and Brute-Force attack vector.' : 'Disabled. Safe.'}</p>
-          </div>
-        </div>
-
-        <div class="check-item">
-          <span class="check-icon">${sec.jsonUsersExposed ? '❌' : '✅'}</span>
-          <div class="check-info">
-            <h4>REST API User Enumeration</h4>
-            <p>${sec.jsonUsersExposed ? 'Exposed. Hackers can scrape your admin usernames right now.' : 'Blocked securely.'}</p>
-          </div>
-        </div>
-
       </div>
 
-      <div class="author-credentials">
-        <p>Audit Generated By <strong>Makhdoom Abdul Aleem</strong></p>
+      <div class="section">
+        <h3>🐦 Social Share Preview</h3>
+        <div class="og-card">
+          <img src="${seo.ogImage || 'https://placehold.co/500x200/1a1f2e/666?text=No+OG+Image+Set'}" alt="Preview">
+          <div class="og-text">
+            <span>${displayUrl.hostname}</span>
+            <h4>${seo.ogTitle || seo.title || '❌ Missing Title'}</h4>
+            <p>${seo.ogDescription || seo.metaDescription || '❌ Missing Description'}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>🏗️ Content Structure (Headings)</h3>
+        <div class="tree">${treeHtml}</div>
+      </div>
+
+      <div class="section">
+        <h3>🖼️ Image Audit (${images.length} found, ${missingAlt.length} missing ALT)</h3>
+        ${images.length ? images.map(img => `<div class="issue"><div style="flex:1;"><div style="font-size:12px; color:#aaa; word-break:break-all;">${img.src.substring(0, 60)}...</div><div style="color: ${img.alt ? '#00c853' : '#ff6b6b'}">ALT: ${img.alt || "❌ Missing"}</div></div></div>`).join("") : "<p>Could not extract images.</p>"}
+      </div>
+
+      <div class="section">
+        <h3>⚠️ Top Performance Issues</h3>
+        ${issues.length ? issues.map(i => `<div class="issue"><div style="flex:1;"><b>${i.title}</b><div class="tip">👉 ${i.displayValue || 'Needs improvement'}</div></div></div>`).join("") : "<p>✅ No major performance issues found!</p>"}
       </div>
     `;
 
-    // ✨ SHOW POPUP IF VULNERABILITIES FOUND
-    if (failures > 0) {
-      setTimeout(() => {
-        document.getElementById('hirePopup').style.display = 'flex';
-      }, 1500); // Wait 1.5 seconds after results load to show popup
-    }
+    document.getElementById("sticky-cta").style.display = "flex";
+    document.getElementById("actionBtns").style.display = "flex";
 
   } catch (e) {
     console.error(e);
-    resultsDiv.innerHTML = `<div class="card danger"><h3>Connection Failed</h3><p>Target is likely using aggressive bot-protection (e.g., Cloudflare Under Attack Mode).</p></div>`;
+    let msg = "An unknown error occurred.";
+    const err = e.message.toLowerCase();
+    if (err.includes("google api error") || err.includes("403")) msg = "🚫 Google API key issue or quota exceeded.";
+    else if (err.includes("failed to fetch") || err.includes("quic")) msg = "🛡️ This website blocked the scan. Try a different site.";
+    
+    resultsDiv.innerHTML = `<div class="section" style="border:1px solid #ff6b6b;"><h3>❌ Analysis Failed</h3><p>${msg}</p></div>`;
   }
 }
 
-document.getElementById("urlInput").addEventListener("keypress", e => { if (e.key === "Enter") runScan(); });
+// ✅ History Management (Local Storage)
+function saveToHistory(url) {
+  let history = JSON.parse(localStorage.getItem('seo_history') || '[]');
+  history = history.filter(h => h !== url);
+  history.unshift(url);
+  if(history.length > 5) history.pop();
+  localStorage.setItem('seo_history', JSON.stringify(history));
+  updateHistoryDropdown();
+}
+
+function loadHistory(url) {
+  if(!url) return;
+  document.getElementById("urlInput").value = url;
+  document.getElementById("historyDrop").value = "";
+  runAnalysis();
+}
+
+function updateHistoryDropdown() {
+  const drop = document.getElementById("historyDrop");
+  const history = JSON.parse(localStorage.getItem('seo_history') || '[]');
+  drop.innerHTML = '<option value="">⏳ Recent Scans</option>' + history.map(h => `<option value="${h}">${h}</option>`).join('');
+}
+
+// ✅ Copy as GitHub Issue
+function copyAsIssue() {
+  if(!currentAuditData) return;
+  const seo = currentAuditData.seo || {};
+  const images = currentAuditData.images || [];
+  const issues = Object.values(currentAuditData.mobile.lighthouseResult.audits).filter(a => a.score !== null && a.score < 0.9).slice(0, 5);
+
+  let md = `## SEO Audit Report\n`;
+  md += `- **Missing ALT Tags:** ${images.filter(i => !i.alt).length}\n`;
+  md += `- **NoIndex Tag:** ${seo.isNoIndex ? '❌ YES (CRITICAL)' : '✅ No'}\n`;
+  md += `- **H1 Tags:** ${seo.headings?.h1?.length || 0} (Should be 1)\n\n`;
+  md += `### Performance Issues\n`;
+  issues.forEach(i => md += `- [ ] ${i.title} (${i.displayValue})\n`);
+
+  navigator.clipboard.writeText(md).then(() => alert('✅ Copied to clipboard! Paste it into GitHub.'));
+}
+
+// Init
+updateHistoryDropdown();
+document.getElementById("urlInput").addEventListener("keypress", e => { if (e.key === "Enter") runAnalysis(); });
 </script>
 </body>
 </html>
